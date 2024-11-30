@@ -30,6 +30,14 @@ def get_current_time():
     """Get current time in UTC with timezone information"""
     return datetime.now(timezone.utc)
 
+def format_time_for_humans(timestamp):
+    # Convert UTC to local time
+    local_time = timestamp.astimezone()
+    return {
+        'date': local_time.strftime("%d %B %Y"),
+        'time': local_time.strftime("%I:%M %p")
+    }
+
 def is_word_valid(word_doc):
     if not word_doc:
         return False
@@ -103,43 +111,44 @@ def generate_word():
 @app.route('/submit_attendance', methods=['POST'])
 def submit_attendance():
     try:
-        roll_number = request.json.get('roll_number')
-        submitted_word = request.json.get('word')
-        
-        if not roll_number or not submitted_word:
+        data = request.get_json()
+        roll_number = data.get('roll_number')
+        word = data.get('word')
+
+        if not roll_number or not word:
             return jsonify({'status': 'error', 'message': 'Roll number and word are required'}), 400
-        
-        # Find word document
-        word_doc = word_collection.find_one({'word': submitted_word})
-        
-        if not word_doc or not is_word_valid(word_doc):
-            return jsonify({'status': 'error', 'message': 'Invalid or expired word'}), 400
-        
-        # Check if attendance already submitted for this word
+
+        # Check if word exists and is valid
+        word_doc = word_collection.find_one({'word': word})
+        if not word_doc:
+            return jsonify({'status': 'error', 'message': 'Invalid word'}), 400
+
+        if not is_word_valid(word_doc):
+            return jsonify({'status': 'error', 'message': 'Word has expired'}), 400
+
+        # Check if attendance already marked
         existing_attendance = permanent_records.find_one({
             'roll_number': roll_number,
-            'word': submitted_word
+            'word': word
         })
-        
         if existing_attendance:
-            return jsonify({'status': 'error', 'message': 'Attendance already submitted'}), 400
-        
-        # Store attendance record
+            return jsonify({'status': 'error', 'message': 'Attendance already marked'}), 400
+
+        # Mark attendance
+        current_time = get_current_time()
+        human_time = format_time_for_humans(current_time)
         attendance_record = {
             'roll_number': roll_number,
-            'word': submitted_word,
+            'word': word,
             'subject_name': word_doc['subject_name'],
-            'date': word_doc['date'],
-            'day': word_doc['day'],
-            'timestamp': get_current_time()
+            'timestamp': current_time,
+            'date': human_time['date'],
+            'time': human_time['time']
         }
         
         permanent_records.insert_one(attendance_record)
-        
-        return jsonify({
-            'status': 'success', 
-            'message': f"Attendance recorded successfully for subject {word_doc['subject_name']}"
-        })
+        return jsonify({'status': 'success', 'message': 'Attendance marked successfully'}), 200
+
     except Exception as e:
         print(f"Error submitting attendance: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -182,13 +191,20 @@ def download_attendance():
         # Get attendance records for this subject from today
         records = list(permanent_records.find({
             'subject_name': subject,
-            'date': today
+            'timestamp': {'$gte': datetime.strptime(today, '%Y-%m-%d').replace(tzinfo=timezone.utc)}
         }, {'_id': 0, 'word': 0, 'timestamp': 0}))  # Exclude unnecessary fields
         
         if not records:
             return jsonify({'status': 'error', 'message': 'No attendance records found for today'}), 404
         
         df = pd.DataFrame(records)
+        
+        # Reorder columns
+        columns_order = ['roll_number', 'subject_name', 'date', 'time']
+        df = df[columns_order]
+        
+        # Rename columns for better readability
+        df.columns = ['Roll No', 'Subject', 'Date', 'Time']
         
         buffer = io.BytesIO()
         
@@ -226,5 +242,9 @@ def download_attendance():
         print(f"Error downloading attendance: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/download')
+def download_page():
+    return render_template('download.html')
+
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

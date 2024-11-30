@@ -6,43 +6,208 @@
     <title>Attendance System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --dark: #2C3E50;
+            --light: #F7F7F7;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 16px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 0 16px;
+        }
+        .neubrutalist-card {
+            background-color: white;
+            border: 4px solid var(--dark);
+            box-shadow: 8px 8px 0 0 var(--dark);
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        @media (min-width: 768px) {
+            .neubrutalist-card {
+                box-shadow: 12px 12px 0 0 var(--dark);
+            }
+            .neubrutalist-card:hover {
+                transform: translate(-6px, -6px);
+                box-shadow: 18px 18px 0 0 var(--dark);
+            }
+        }
+        .card-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 4px solid var(--dark);
+            font-size: 1.1rem;
+        }
+        .card-body {
+            padding: 24px 16px;
+        }
+        .form-control {
+            border: 3px solid var(--dark);
+            border-radius: 0;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            height: auto;
+            margin-bottom: 16px;
+        }
+        .form-control:focus {
+            outline: none;
+            box-shadow: 6px 6px 0 0 var(--secondary);
+            border-color: var(--dark);
+        }
+        .btn-primary {
+            background-color: var(--secondary);
+            border: 3px solid var(--dark);
+            color: var(--dark);
+            border-radius: 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 8px 0;
+            min-height: 56px;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--accent);
+            border-color: var(--dark);
+            color: var(--dark);
+            box-shadow: 6px 6px 0 0 var(--dark);
+            transform: translate(-3px, -3px);
+        }
         .generated-word {
-            font-size: 2em;
-            font-weight: bold;
-            color: #007bff;
+            background-color: var(--secondary);
+            color: var(--dark);
+            font-size: 2rem;
+            font-weight: 900;
+            text-align: center;
+            padding: 20px;
+            letter-spacing: 2px;
+            border: 4px solid var(--dark);
+            margin: 24px 0;
+            word-break: break-all;
         }
         .countdown {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #dc3545;
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1.5rem;
         }
-        .section-divider {
-            border-top: 2px solid #dee2e6;
-            margin: 2rem 0;
+        h1 {
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 24px 0;
+            border: 4px solid var(--dark);
+            padding: 20px;
+            background-color: var(--accent);
+            color: var(--dark);
+            box-shadow: 8px 8px 0 0 var(--dark);
+            font-size: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2rem;
+                box-shadow: 12px 12px 0 0 var(--dark);
+            }
+        }
+        .form-label {
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+        .nav-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            padding: 12px 20px;
+            border: 3px solid var(--dark);
+            background-color: white;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        .nav-link:hover, .nav-link:focus {
+            color: var(--dark);
+            background-color: var(--accent);
+            transform: translate(-3px, -3px);
+            box-shadow: 6px 6px 0 0 var(--dark);
+        }
+        .student-card {
+            border-color: var(--secondary);
+        }
+        .student-card .card-header {
+            background-color: var(--secondary);
+        }
+        /* Touch-friendly adjustments */
+        @media (max-width: 768px) {
+            .btn, .form-control, .nav-link {
+                min-height: 48px;
+                touch-action: manipulation;
+            }
+            .form-control {
+                font-size: 16px; /* Prevents iOS zoom */
+            }
+            .card-body {
+                padding: 16px 12px;
+            }
+            .generated-word {
+                font-size: 1.5rem;
+                padding: 16px;
+            }
+            .countdown {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Attendance System</h1>
+    <div class="container">
+        <h1>Attendance Portal</h1>
+        
+        <!-- Navigation -->
+        <div class="text-end mb-4">
+            <a href="/download" class="nav-link">Download Records →</a>
+        </div>
         
         <!-- Teacher Section -->
-        <div class="card mb-4">
+        <div class="card neubrutalist-card mb-4">
             <div class="card-header">
-                <h2>Teacher Section</h2>
+                Teacher Dashboard
             </div>
             <div class="card-body">
                 <!-- Word Generation -->
                 <div class="mb-4">
-                    <h3>Generate Attendance Word</h3>
                     <div class="row">
-                        <div class="col-md-6 mx-auto">
+                        <div class="col-12">
                             <div class="mb-3">
-                                <label for="subject" class="form-label">Subject Name</label>
-                                <input type="text" class="form-control" id="subject" required>
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" required placeholder="Enter subject name">
                             </div>
                             <div class="text-center">
-                                <button id="generateWord" class="btn btn-primary">Generate New Word</button>
+                                <button id="generateWord" class="btn btn-primary">Generate Attendance Word</button>
                             </div>
                         </div>
                     </div>
@@ -50,59 +215,32 @@
 
                 <!-- Word Display -->
                 <div id="word-display" class="text-center mb-4" style="display: none;">
-                    <h3>Generated Word:</h3>
+                    <h3>Attendance Word:</h3>
                     <p class="generated-word" id="generated-word"></p>
-                    <p>Time Remaining: <span id="timer" class="countdown"></span></p>
-                </div>
-
-                <!-- Download Section -->
-                <div class="mt-4">
-                    <h3>Download Attendance</h3>
-                    <div class="row">
-                        <div class="col-md-6 mx-auto">
-                            <div class="mb-3">
-                                <label for="download-subject" class="form-label">Subject Name</label>
-                                <input type="text" class="form-control" id="download-subject" placeholder="Enter subject name">
-                            </div>
-                            <div class="mb-3">
-                                <label for="filename" class="form-label">File Name</label>
-                                <input type="text" class="form-control" id="filename" placeholder="Enter file name (optional)">
-                            </div>
-                            <div class="mb-3">
-                                <label for="format" class="form-label">Format</label>
-                                <select class="form-select" id="format">
-                                    <option value="csv">CSV</option>
-                                    <option value="excel">Excel</option>
-                                </select>
-                            </div>
-                            <div class="text-center">
-                                <button id="downloadAttendance" class="btn btn-success">Download Attendance</button>
-                            </div>
-                        </div>
-                    </div>
+                    <p>Time Left: <span id="timer" class="countdown"></span></p>
                 </div>
             </div>
         </div>
 
         <!-- Student Section -->
-        <div class="card">
+        <div class="card neubrutalist-card student-card">
             <div class="card-header">
-                <h2>Student Section</h2>
+                Student Attendance
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mx-auto">
+                    <div class="col-12">
                         <form id="attendanceForm">
                             <div class="mb-3">
                                 <label for="roll" class="form-label">Roll Number</label>
-                                <input type="text" class="form-control" id="roll" required>
+                                <input type="text" class="form-control" id="roll" required placeholder="Enter your roll number">
                             </div>
                             <div class="mb-3">
-                                <label for="word" class="form-label">Enter Word</label>
-                                <input type="text" class="form-control" id="word" required>
+                                <label for="word" class="form-label">Attendance Word</label>
+                                <input type="text" class="form-control" id="word" required placeholder="Enter attendance word">
                             </div>
                             <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Submit</button>
+                                <button type="submit" class="btn btn-primary">Mark Attendance</button>
                             </div>
                         </form>
                     </div>
@@ -140,8 +278,6 @@
                 document.getElementById('generated-word').textContent = data.word;
                 document.getElementById('word-display').style.display = 'block';
                 startTimer(new Date(data.expiry_time));
-                // Copy subject to download section
-                document.getElementById('download-subject').value = subject;
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -162,6 +298,7 @@
                 if (distance <= 0) {
                     clearInterval(downloadTimer);
                     document.getElementById('timer').textContent = 'EXPIRED';
+                    document.getElementById('word-display').style.display = 'none';
                     currentWord = '';
                     return;
                 }
@@ -206,19 +343,6 @@
             });
         }
 
-        function downloadAttendance() {
-            const subject = document.getElementById('download-subject').value;
-            if (!subject) {
-                alert('Please enter subject name');
-                return;
-            }
-
-            const format = document.getElementById('format').value;
-            const filename = document.getElementById('filename').value || 'attendance';
-            
-            window.location.href = `/download_attendance?subject=${encodeURIComponent(subject)}&format=${format}&filename=${filename}`;
-        }
-
         // Check word status every 10 seconds
         setInterval(() => {
             if (currentWord) {
@@ -242,8 +366,6 @@
                 e.preventDefault();
                 submitAttendance();
             });
-            
-            document.getElementById('downloadAttendance').addEventListener('click', downloadAttendance);
         });
     </script>
 </body>
