@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, make_response
 from datetime import datetime, timedelta, timezone
 import random
 import string
@@ -8,6 +8,8 @@ import os
 import io
 from bson import ObjectId
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+from auth import teacher_required
 
 # Load environment variables
 load_dotenv()
@@ -16,16 +18,28 @@ app = Flask(__name__)
 
 # MongoDB setup using environment variables
 try:
-    client = MongoClient(os.getenv('MONGO_URI'), serverSelectionTimeoutMS=2000)
+    mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    client = MongoClient(mongo_uri)
+
     # Verify connection
     client.server_info()
-    db = client[os.getenv('DATABASE_NAME')]
-    attendance_collection = db[os.getenv('ATTENDANCE_COLLECTION')]
-    word_collection = db[os.getenv('WORD_COLLECTION')]
-    permanent_records = db[os.getenv('PERMANENT_RECORDS_COLLECTION')]
-except Exception as e:
-    print(f"MongoDB Connection Error: {e}")
 
+    # Load environment variables safely
+    database_name = os.getenv("DATABASE_NAME", "default_db")
+    attendance_collection_name = os.getenv("ATTENDANCE_COLLECTION", "attendance")
+    word_collection_name = os.getenv("WORD_COLLECTION", "words")
+    permanent_records_name = os.getenv("PERMANENT_RECORDS_COLLECTION", "permanent_records")
+    teachers_name = os.getenv("TEACHERS_COLLECTION", "teachers")
+
+    # Access collections
+    db = client[database_name]
+    attendance_collection = db[attendance_collection_name]
+    word_collection = db[word_collection_name]
+    permanent_records = db[permanent_records_name]
+    teachers = db[teachers_name]
+
+except Exception as e:
+    print(f"MongoDB Connection Error: {e.__class__.__name__} - {e}")
 def get_current_time():
     """Get current time in UTC with timezone information"""
     return datetime.now(timezone.utc)
@@ -71,11 +85,69 @@ def generate_random_word(length=8):
     random.shuffle(word_list)
     return ''.join(word_list)
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not all([name, email, password, confirm_password]):
+            return render_template('signup.html', error='All fields are required')
+
+        if password != confirm_password:
+            return render_template('signup.html', error='Passwords do not match')
+
+        if teachers.find_one({'email': email}):
+            return render_template('signup.html', error='Email already registered')
+
+        hashed_password = generate_password_hash(password)
+        teacher = {
+            'name': name,
+            'email': email,
+            'password': hashed_password,
+            'created_at': get_current_time()
+        }
+        
+        teachers.insert_one(teacher)
+        response = make_response(redirect(url_for('index')))
+        response.set_cookie('teacher_email', email, max_age=86400)  # 24 hours
+        return response
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not all([email, password]):
+            return render_template('login.html', error='All fields are required')
+
+        teacher = teachers.find_one({'email': email})
+        if not teacher or not check_password_hash(teacher['password'], password):
+            return render_template('login.html', error='Invalid email or password')
+
+        response = make_response(redirect(url_for('index')))
+        response.set_cookie('teacher_email', email, max_age=86400)  # 24 hours
+        return response
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    response = make_response(redirect(url_for('login')))
+    response.delete_cookie('teacher_email')
+    return response
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/generate_word', methods=['POST'])
+@teacher_required
 def generate_word():
     try:
         subject_name = request.json.get('subject_name')

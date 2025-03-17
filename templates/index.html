@@ -189,7 +189,12 @@
         
         <!-- Navigation -->
         <div class="text-end mb-4">
-            <a href="/download" class="nav-link">Download Records →</a>
+            <a href="/download" class="nav-link me-2">Download Records →</a>
+            {% if request.cookies.get('teacher_email') %}
+            <a href="/logout" class="nav-link">Logout</a>
+            {% else %}
+            <a href="/login" class="nav-link">Login</a>
+            {% endif %}
         </div>
         
         <!-- Teacher Section -->
