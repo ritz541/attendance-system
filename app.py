@@ -144,7 +144,11 @@ def logout():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    teacher_email = request.cookies.get('teacher_email')
+    if teacher_email:
+        teacher = teachers.find_one({'email': teacher_email})
+        return render_template('index.html', teacher=teacher)
+    return render_template('landing.html')
 
 @app.route('/generate_word', methods=['POST'])
 @teacher_required
